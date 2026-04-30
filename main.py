@@ -24,7 +24,14 @@ app = FastAPI(title="Steam Booster Value Optimizer")
 
 templates = Jinja2Templates(directory="templates")
 
-STEAM_API_KEY = "C067760829B725F07D971DE7D3B483CF"
+def _load_api_key() -> str:
+    config_path = Path(__file__).parent / "config.json"
+    if config_path.exists():
+        with open(config_path, "r", encoding="utf-8") as f:
+            return json.load(f).get("steam_api_key", "")
+    return ""
+
+STEAM_API_KEY = _load_api_key()
 
 # 缓存
 _gem_price_cache: dict[str, Any] = {}
