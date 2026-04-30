@@ -9,14 +9,19 @@
         body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; background: #1a1a2e; color: #eee; min-height: 100vh; padding: 2rem; }
         .container { max-width: 1100px; margin: 0 auto; }
         h1 { text-align: center; margin-bottom: 2rem; color: #fff; }
+        .tabs { display: flex; gap: 0.5rem; justify-content: center; margin-bottom: 1.5rem; }
+        .tab { padding: 0.6rem 1.5rem; border: none; border-radius: 8px; cursor: pointer; background: #16213e; color: #aaa; font-size: 1rem; }
+        .tab.active { background: #e94560; color: #fff; }
         .search-box { display: flex; gap: 1rem; justify-content: center; margin-bottom: 1.5rem; flex-wrap: wrap; }
-        input { padding: 0.75rem 1rem; border: none; border-radius: 8px; font-size: 1rem; width: 300px; background: #16213e; color: #fff; border: 1px solid #0f3460; }
+        input { padding: 0.75rem 1rem; border: none; border-radius: 8px; font-size: 1rem; width: 320px; background: #16213e; color: #fff; border: 1px solid #0f3460; }
         button { padding: 0.75rem 1.5rem; border: none; border-radius: 8px; font-size: 1rem; cursor: pointer; background: #e94560; color: #fff; font-weight: 600; transition: background 0.2s; }
         button:hover { background: #ff6b6b; }
         button:disabled { background: #555; cursor: not-allowed; }
+        .mode-a, .mode-b { display: none; }
+        .mode-a.active, .mode-b.active { display: flex; }
+        .hint { text-align: center; color: #666; font-size: 0.85rem; margin-bottom: 1rem; }
         .meta { text-align: center; margin-bottom: 1rem; color: #aaa; font-size: 0.9rem; }
         .controls { display: flex; gap: 1rem; justify-content: center; margin-bottom: 1rem; flex-wrap: wrap; align-items: center; }
-        .controls label { color: #aaa; }
         select { padding: 0.5rem; border-radius: 6px; border: none; background: #16213e; color: #fff; }
         .filter-btn { padding: 0.4rem 1rem; border: none; border-radius: 6px; cursor: pointer; background: #16213e; color: #aaa; font-size: 0.9rem; }
         .filter-btn.active { background: #e94560; color: #fff; }
@@ -30,21 +35,59 @@
         .loss-tag { color: #ff6b6b; }
         .loading { text-align: center; padding: 2rem; color: #aaa; }
         .error { text-align: center; padding: 2rem; color: #ff6b6b; }
-        .progress { text-align: center; margin-bottom: 1rem; color: #aaa; }
-        .info-bar { display: flex; justify-content: space-between; background: #16213e; padding: 0.75rem 1rem; border-radius: 8px; margin-bottom: 1rem; font-size: 0.9rem; color: #aaa; }
+        .info-bar { display: flex; justify-content: space-between; background: #16213e; padding: 0.75rem 1rem; border-radius: 8px; margin-bottom: 1rem; font-size: 0.9rem; color: #aaa; flex-wrap: wrap; gap: 0.5rem; }
         .info-bar span { color: #fff; }
         footer { text-align: center; margin-top: 2rem; color: #555; font-size: 0.8rem; }
+        /* 搜索结果 */
+        .search-results { background: #16213e; border-radius: 12px; padding: 1rem; margin-bottom: 1rem; }
+        .search-item { display: flex; align-items: center; justify-content: space-between; padding: 0.7rem; border-radius: 8px; border-bottom: 1px solid #0f3460; }
+        .search-item:last-child { border-bottom: none; }
+        .search-item:hover { background: #1a2a4e; }
+        .search-item .name { flex: 1; color: #fff; }
+        .analyze-btn { padding: 0.4rem 1rem; border: none; border-radius: 6px; cursor: pointer; background: #e94560; color: #fff; font-size: 0.85rem; }
+        .analyze-btn:hover { background: #ff6b6b; }
+        .analyze-btn:disabled { background: #555; cursor: not-allowed; }
+        .analyzed-list { margin-top: 1rem; }
+        .analyzed-item { background: #16213e; border-radius: 8px; padding: 1rem; margin-bottom: 0.5rem; display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 0.5rem; }
+        .analyzed-item .game-info { flex: 1; }
+        .analyzed-item .game-info .name { color: #fff; font-weight: 600; }
+        .analyzed-item .game-info .detail { color: #aaa; font-size: 0.85rem; margin-top: 0.3rem; }
+        .analyzed-item .metrics { text-align: right; }
+        .gem-info { text-align: center; background: #16213e; padding: 0.5rem; border-radius: 8px; margin-bottom: 1rem; color: #aaa; font-size: 0.9rem; }
+        .gem-info span { color: #e94560; font-weight: 600; }
     </style>
 </head>
 <body>
     <div class="container">
-        <h1>🎴 Steam 卡牌补充包价值优化</h1>
+        <h1>Steam 卡牌补充包价值优化</h1>
 
-        <div class="search-box">
-            <input type="text" id="steamId" placeholder="输入 Steam ID（如 76561198000000）" value="">
-            <button id="searchBtn" onclick="fetchData()">查询</button>
+        <div class="tabs">
+            <button class="tab active" id="tabA" onclick="switchMode('A')">方式A：Steam ID</button>
+            <button class="tab" id="tabB" onclick="switchMode('B')">方式B：搜索游戏</button>
         </div>
 
+        <!-- 方式A：Steam ID -->
+        <div class="mode-a active" id="modeA">
+            <div class="search-box" style="display:flex">
+                <input type="text" id="steamIdInput" placeholder="输入 Steam ID（如 76561198000000）" value="">
+                <button id="searchBtn" onclick="fetchBySteamId()">查询</button>
+            </div>
+        </div>
+
+        <!-- 方式B：游戏名搜索 -->
+        <div class="mode-b" id="modeB">
+            <p class="hint">输入游戏名称，点击分析按钮查看性价比</p>
+            <div class="search-box" style="display:flex">
+                <input type="text" id="gameNameInput" placeholder="输入游戏名称（如 Dota 2）" value="">
+                <button onclick="searchGames()">搜索</button>
+            </div>
+            <div id="searchResults" class="search-results" style="display:none"></div>
+            <div id="analyzedList" class="analyzed-list" style="display:none"></div>
+        </div>
+
+        <div id="gemInfo" class="gem-info" style="display:none">
+            当前 1000 宝石价格：<span id="gemPrice">-</span>
+        </div>
         <div id="meta" class="meta" style="display:none"></div>
         <div id="controls" class="controls" style="display:none">
             <button class="filter-btn active" id="filterAll" onclick="setFilter('all')">全部</button>
@@ -56,10 +99,7 @@
                 <option value="game_name">游戏名</option>
             </select>
         </div>
-
-        <div id="progress" class="progress" style="display:none">正在查询...</div>
         <div id="tableContainer"></div>
-
         <footer>数据来源：Steam Market、SteamGridDB · 价格实时波动，仅供参考</footer>
     </div>
 
@@ -67,33 +107,132 @@
         let allGames = [];
         let currentFilter = 'all';
         let gemPrice = 0;
+        let currentMode = 'A';
 
-        function formatMoney(v) {
-            return '¥' + (v || 0).toFixed(2);
-        }
-        function formatRate(v) {
-            return (v || 0).toFixed(1) + '%';
+        function formatMoney(v) { return '¥' + (v || 0).toFixed(2); }
+        function formatRate(v) { return (v || 0).toFixed(1) + '%'; }
+
+        function switchMode(mode) {
+            currentMode = mode;
+            document.getElementById('tabA').classList.toggle('active', mode === 'A');
+            document.getElementById('tabB').classList.toggle('active', mode === 'B');
+            document.getElementById('modeA').classList.toggle('active', mode === 'A');
+            document.getElementById('modeB').classList.toggle('active', mode === 'B');
         }
 
-        async function fetchData() {
-            const steamId = document.getElementById('steamId').value.trim();
+        // ── 方式A ──
+        async function fetchBySteamId() {
+            const steamId = document.getElementById('steamIdInput').value.trim();
             if (!steamId) return;
+            await runQuery('/api/calculate?steam_id=' + encodeURIComponent(steamId));
+        }
 
+        // ── 方式B ──
+        let searchCache = {};
+
+        async function searchGames() {
+            const name = document.getElementById('gameNameInput').value.trim();
+            if (!name) return;
+
+            const container = document.getElementById('searchResults');
+            container.style.display = 'block';
+            container.innerHTML = '<div class="loading">搜索中...</div>';
+
+            // 先获取宝石价格
+            await ensureGemPrice();
+
+            try {
+                const resp = await fetch('/api/search?game_name=' + encodeURIComponent(name));
+                const data = await resp.json();
+
+                if (data.error || !data.games || data.games.length === 0) {
+                    container.innerHTML = '<div class="error">' + (data.error || '未找到结果') + '</div>';
+                    return;
+                }
+
+                searchCache = {};
+                data.games.forEach(g => searchCache[g.app_id] = g.game_name);
+
+                container.innerHTML = data.games.map(g =>
+                    `<div class="search-item">
+                        <span class="name">${g.game_name}</span>
+                        <button class="analyze-btn" onclick="analyzeGame(${g.app_id}, '${encodeURIComponent(g.game_name)}')">分析</button>
+                    </div>`
+                ).join('');
+
+                document.getElementById('analyzedList').style.display = 'none';
+                document.getElementById('analyzedList').innerHTML = '';
+
+            } catch (e) {
+                container.innerHTML = '<div class="error">搜索失败: ' + e.message + '</div>';
+            }
+        }
+
+        async function analyzeGame(appId, encodedName) {
+            const name = decodeURIComponent(encodedName);
+            const btn = document.querySelector(`button[onclick="analyzeGame(${appId}, '${encodedName}')"]`);
+            if (btn) { btn.disabled = true; btn.textContent = '分析中...'; }
+
+            try {
+                const resp = await fetch(`/api/analyze?app_id=${appId}&game_name=${encodeURIComponent(name)}`);
+                const data = await resp.json();
+
+                const list = document.getElementById('analyzedList');
+                list.style.display = 'block';
+
+                if (data.error) {
+                    const isBoosterError = data.error.includes('没有可兑换');
+                    const item = document.createElement('div');
+                    item.className = 'analyzed-item';
+                    item.innerHTML = `<div class="game-info"><div class="name">${name}</div><div class="detail" style="color:${isBoosterError?'#666':'#ff6b6b'}">${data.error}</div></div>`;
+                    list.prepend(item);
+                } else {
+                    const isProfit = data.profit_cny > 0;
+                    const item = document.createElement('div');
+                    item.className = 'analyzed-item';
+                    item.innerHTML = `
+                        <div class="game-info">
+                            <div class="name">${data.game_name}</div>
+                            <div class="detail">宝石成本: ${data.booster_gems}颗 → ${formatMoney(data.booster_cost_cny)}</div>
+                        </div>
+                        <div class="metrics">
+                            <div class="profit-tag">+${formatMoney(data.card_total_value_cny)}</div>
+                            <div style="color:#aaa;font-size:0.85rem">卡牌价值</div>
+                            <div class="${isProfit?'profit-tag':'loss-tag'}" style="margin-top:0.3rem">${isProfit?'+':''}${formatMoney(data.profit_cny)} | ${formatRate(data.profit_rate)}</div>
+                        </div>
+                    `;
+                    list.prepend(item);
+                }
+            } finally {
+                if (btn) { btn.disabled = false; btn.textContent = '分析'; }
+            }
+        }
+
+        async function ensureGemPrice() {
+            if (gemPrice > 0) return;
+            try {
+                const resp = await fetch('/api/gem-price');
+                const data = await resp.json();
+                gemPrice = data.price || 0;
+                document.getElementById('gemPrice').textContent = formatMoney(gemPrice);
+                document.getElementById('gemInfo').style.display = 'block';
+            } catch(e) {}
+        }
+
+        async function runQuery(url) {
             const btn = document.getElementById('searchBtn');
             const progress = document.getElementById('progress');
             const tableContainer = document.getElementById('tableContainer');
             const meta = document.getElementById('meta');
             const controls = document.getElementById('controls');
 
-            btn.disabled = true;
-            progress.style.display = 'block';
-            progress.textContent = '正在获取游戏列表...';
-            tableContainer.innerHTML = '';
+            if (btn) { btn.disabled = true; }
+            tableContainer.innerHTML = '<div class="loading">加载中...</div>';
             meta.style.display = 'none';
             controls.style.display = 'none';
 
             try {
-                const resp = await fetch('/api/calculate?steam_id=' + encodeURIComponent(steamId));
+                const resp = await fetch(url);
                 const data = await resp.json();
 
                 if (data.error) {
@@ -102,9 +241,12 @@
                 }
 
                 allGames = data.games || [];
-                gemPrice = data.gem_price_cny;
+                gemPrice = data.gem_price_cny || 0;
 
-                meta.innerHTML = `用户：<strong>${data.username}</strong> · 1000宝石 = ${formatMoney(gemPrice)} · 共 ${allGames.length} 款游戏有补充包`;
+                document.getElementById('gemPrice').textContent = formatMoney(gemPrice);
+                document.getElementById('gemInfo').style.display = 'block';
+
+                meta.innerHTML = `用户：<strong>${data.username}</strong> · 共 ${allGames.length} 款游戏有补充包`;
                 meta.style.display = 'block';
                 controls.style.display = 'flex';
 
@@ -112,8 +254,7 @@
             } catch (e) {
                 tableContainer.innerHTML = '<div class="error">查询失败: ' + e.message + '</div>';
             } finally {
-                btn.disabled = false;
-                progress.style.display = 'none';
+                if (btn) { btn.disabled = false; }
             }
         }
 
@@ -158,20 +299,13 @@
 
             for (const g of games) {
                 const isProfit = g.profit_cny > 0;
-                const profitTag = isProfit
-                    ? `<span class="profit-tag">+${formatMoney(g.profit_cny)}</span>`
-                    : `<span class="loss-tag">${formatMoney(g.profit_cny)}</span>`;
-                const rateTag = isProfit
-                    ? `<span class="profit-tag">${formatRate(g.profit_rate)}</span>`
-                    : `<span class="loss-tag">${formatRate(g.profit_rate)}</span>`;
-
                 html += `<tr class="${isProfit ? 'profit' : 'loss'}">
                     <td>${g.game_name}</td>
                     <td>${g.booster_gems}</td>
                     <td>${formatMoney(g.booster_cost_cny)}</td>
                     <td>${formatMoney(g.card_total_value_cny)}</td>
-                    <td>${profitTag}</td>
-                    <td>${rateTag}</td>
+                    <td class="${isProfit ? 'profit-tag' : 'loss-tag'}">${isProfit?'+':''}${formatMoney(g.profit_cny)}</td>
+                    <td class="${isProfit ? 'profit-tag' : 'loss-tag'}">${formatRate(g.profit_rate)}</td>
                 </tr>`;
             }
 
@@ -184,9 +318,8 @@
             renderTable();
         }
 
-        // 回车搜索
-        document.getElementById('steamId').addEventListener('keydown', e => {
-            if (e.key === 'Enter') fetchData();
+        document.getElementById('steamIdInput').addEventListener('keydown', e => {
+            if (e.key === 'Enter') fetchBySteamId();
         });
     </script>
 </body>
